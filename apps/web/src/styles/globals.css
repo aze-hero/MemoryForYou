@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --color-cream: #FDFBF7;
+  --color-warm-gray: #F5F0EB;
+  --color-deep-blue: #1A2744;
+  --color-starry: #2D3B5E;
+  --color-golden: #C4A265;
+}
+
+@layer base {
+  body {
+    @apply bg-cream text-deep-blue antialiased;
+  }
+}
+
+@utility glass {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(20px) saturate(1.5);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}

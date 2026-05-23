@@ -1,0 +1,3 @@
+DROP TABLE IF EXISTS memories;
+DROP TABLE IF EXISTS memory_spaces;
+DROP TABLE IF EXISTS users;
