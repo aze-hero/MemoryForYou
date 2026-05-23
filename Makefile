@@ -10,10 +10,15 @@ dev-api:
 	cd apps/api && go run ./cmd/server/main.go
 
 db-up:
-	docker compose -f docker/docker-compose.yml up -d
+	docker run -d --name timecapsule-db \
+		-e POSTGRES_USER=timecapsule \
+		-e POSTGRES_PASSWORD=timecapsule \
+		-e POSTGRES_DB=timecapsule \
+		-p 5432:5432 \
+		docker.1ms.run/library/postgres:16-alpine 2>/dev/null || echo "DB already running"
 
 db-down:
-	docker compose -f docker/docker-compose.yml down
+	docker rm -f timecapsule-db 2>/dev/null || echo "DB not running"
 
 db-migrate:
 	psql "postgresql://timecapsule:timecapsule@localhost:5432/timecapsule?sslmode=disable" -f apps/api/migrations/001_init.up.sql
