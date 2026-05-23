@@ -43,7 +43,7 @@ func main() {
 
 	// Handlers
 	handler.NewHealthHandler().Register(r)
-	handler.NewAuthHandler(authService, cfg.JWTSecret).Register(r)
+	handler.NewAuthHandler(authService, cfg).Register(r)
 	handler.NewSpaceHandler(spaceService, cfg.JWTSecret).Register(r)
 	handler.NewMemoryHandler(memoryService, aiService, cfg.JWTSecret).Register(r)
 

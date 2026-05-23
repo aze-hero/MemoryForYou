@@ -108,3 +108,20 @@ func (s *AuthService) RefreshAccessToken(refreshToken string) (*LoginResult, err
 func (s *AuthService) GetMe(userID string) (*model.User, error) {
 	return s.userRepo.FindByID(userID)
 }
+
+func (s *AuthService) DevLogin(email, name string) (*LoginResult, error) {
+	user, err := s.userRepo.FindByEmail(email)
+	if err != nil {
+		user = &model.User{
+			Email:      email,
+			Name:       name,
+			Provider:   "dev",
+			ProviderID: email,
+		}
+		if err := s.userRepo.Create(user); err != nil {
+			return nil, err
+		}
+	}
+
+	return s.generateTokens(user)
+}

@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, ArrowRight, Heart, Camera, MapPin } from 'lucide-react';
+import { useAuth } from '@/lib/auth-context';
 
 const demoCards = [
   {
@@ -76,6 +78,8 @@ function GradientBackground({ mousePos }: { mousePos: { x: number; y: number } }
 }
 
 function Nav() {
+  const router = useRouter();
+  const { isAuthenticated, isLoading } = useAuth();
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -97,9 +101,23 @@ function Nav() {
         <span className="font-serif text-xl font-semibold tracking-wide text-deep-blue">
           TimeCapsule
         </span>
-        <button className="rounded-full bg-deep-blue px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-starry">
-          开始体验
-        </button>
+        {!isLoading && (
+          isAuthenticated ? (
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="rounded-full bg-deep-blue px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-starry"
+            >
+              进入空间
+            </button>
+          ) : (
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="rounded-full bg-deep-blue px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-starry"
+            >
+              开始体验
+            </button>
+          )
+        )}
       </div>
     </motion.nav>
   );
@@ -300,6 +318,28 @@ function FeaturesSection() {
 }
 
 function CTASection() {
+  const router = useRouter();
+  const { isAuthenticated } = useAuth();
+  const [showDevLogin, setShowDevLogin] = useState(false);
+  const [devEmail, setDevEmail] = useState('');
+  const [devName, setDevName] = useState('');
+  const [devLoading, setDevLoading] = useState(false);
+
+  const handleDevLogin = async () => {
+    if (!devEmail.trim() || !devName.trim()) return;
+    setDevLoading(true);
+    try {
+      const { authApi, setAccessToken } = await import('@/lib/api');
+      const result = await authApi.devLogin(devEmail.trim(), devName.trim());
+      setAccessToken(result.access_token);
+      router.push('/dashboard');
+    } catch (err) {
+      console.error('Dev login failed:', err);
+    } finally {
+      setDevLoading(false);
+    }
+  };
+
   return (
     <motion.section
       initial={{ y: 60, opacity: 0 }}
@@ -315,14 +355,60 @@ function CTASection() {
         <p className="mt-4 text-starry/60">
           不需要注册，上传一张照片就能开始。
         </p>
-        <motion.button
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
-          className="mt-8 inline-flex items-center gap-3 rounded-full bg-deep-blue px-8 py-4 text-lg font-medium text-white shadow-lg shadow-deep-blue/20 transition-all hover:bg-starry"
-        >
-          <Camera className="h-5 w-5" />
-          上传第一张照片
-        </motion.button>
+        {isAuthenticated ? (
+          <motion.button
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => router.push('/dashboard')}
+            className="mt-8 inline-flex items-center gap-3 rounded-full bg-deep-blue px-8 py-4 text-lg font-medium text-white shadow-lg shadow-deep-blue/20 transition-all hover:bg-starry"
+          >
+            <Camera className="h-5 w-5" />
+            进入控制台
+          </motion.button>
+        ) : (
+          <div className="mt-8 space-y-4">
+            {!showDevLogin ? (
+              <div className="flex flex-col items-center gap-3">
+                <button
+                  onClick={() => setShowDevLogin(true)}
+                  className="inline-flex items-center gap-3 rounded-full bg-deep-blue px-8 py-4 text-lg font-medium text-white shadow-lg shadow-deep-blue/20 transition-all hover:bg-starry"
+                >
+                  <Camera className="h-5 w-5" />
+                  快速体验
+                </button>
+                <p className="text-xs text-starry/30">无需注册，即刻体验完整功能</p>
+              </div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                className="mx-auto max-w-xs space-y-3"
+              >
+                <input
+                  type="text"
+                  value={devName}
+                  onChange={(e) => setDevName(e.target.value)}
+                  placeholder="名字"
+                  className="w-full rounded-xl border border-deep-blue/10 bg-white/50 px-4 py-3 text-deep-blue placeholder:text-starry/30 focus:border-deep-blue/30 focus:outline-none text-center"
+                />
+                <input
+                  type="email"
+                  value={devEmail}
+                  onChange={(e) => setDevEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  className="w-full rounded-xl border border-deep-blue/10 bg-white/50 px-4 py-3 text-deep-blue placeholder:text-starry/30 focus:border-deep-blue/30 focus:outline-none text-center"
+                />
+                <button
+                  onClick={handleDevLogin}
+                  disabled={devLoading}
+                  className="w-full rounded-full bg-deep-blue px-8 py-3 text-sm font-medium text-white hover:bg-starry disabled:opacity-50 transition-all"
+                >
+                  {devLoading ? '登录中...' : '开始体验'}
+                </button>
+              </motion.div>
+            )}
+          </div>
+        )}
       </div>
     </motion.section>
   );
